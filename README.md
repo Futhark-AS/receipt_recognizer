@@ -1,6 +1,4 @@
-# Project Title
-
-Receipt Recognizer
+# Receipt Recognizer
 
 ## Summary
 
