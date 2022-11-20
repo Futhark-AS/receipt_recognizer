@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 // Import http package
 import 'package:http/http.dart' as http;
@@ -361,6 +363,21 @@ class _HomePageState extends State<HomePage> {
         //child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+
+  void postItemsToFireStore() async {
+    // get the current user
+    User? user = FirebaseAuth.instance.currentUser;
+    // get the current user's uid
+    String uid = user!.uid;
+
+    // create a new collection named uid if it doesn't exist
+    // and add a new document with the current timestamp
+    // and add the itemsList to the document
+
+
+
   }
 
   // Create a function to pick an image from the gallery
