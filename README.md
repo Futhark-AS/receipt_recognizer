@@ -2,7 +2,7 @@
 
 ## Summary
 
-Extracts data from an image of a receipt, storing it in a structured format.
+Extracts data from an image of a receipt, storing it in a structured format. The application is created using Flutter and the Azure Cognitive Services Form Recognizer API.
 
 ## Background
 
