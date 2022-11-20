@@ -118,35 +118,14 @@ class _HomePageState extends State<HomePage> {
   // Format: {name: string, price: double, quantity: double, date: string}
   // fill with dummy data
   List<Map<String, dynamic>> _itemsList = [
-    {'name': 'Apple', 'price': 1.99, 'quantity': 1, 'date': '2021-01-01'},
+    {'name': 'Apple', 'price': 2, 'quantity': 1, 'date': '2021-01-01'},
     {'name': 'Banana', 'price': 2.99, 'quantity': 2, 'date': '2021-01-01'},
     {'name': 'Orange', 'price': 3.99, 'quantity': 3, 'date': '2021-01-01'},
-    {'name': 'Grapes', 'price': 4.99, 'quantity': 4, 'date': '2021-01-01'},
-    {'name': 'Pineapple', 'price': 5.99, 'quantity': 5, 'date': '2021-01-01'},
-    {'name': 'Watermelon', 'price': 6.99, 'quantity': 6, 'date': '2021-01-01'},
-    {'name': 'Mango', 'price': 7.99, 'quantity': 7, 'date': '2021-01-01'},
-    {'name': 'Peach', 'price': 8.99, 'quantity': 8, 'date': '2021-01-01'},
-    {'name': 'Strawberry', 'price': 9.99, 'quantity': 9, 'date': '2021-01-01'},
-    {'name': 'Blueberry', 'price': 10.99, 'quantity': 10, 'date': '2021-01-01'},
-    {'name': 'Raspberry', 'price': 11.99, 'quantity': 11, 'date': '2021-01-01'},
-    {'name': 'Kiwi', 'price': 12.99, 'quantity': 12, 'date': '2021-01-01'},
-    {'name': 'Lemon', 'price': 13.99, 'quantity': 13, 'date': '2021-01-01'},
-    {'name': 'Lime', 'price': 14.99, 'quantity': 14, 'date': '2021-01-01'},
-    {'name': 'Pomegranate', 'price': 15.99, 'quantity': 15, 'date': '2021-01-01'},
-    {'name': 'Papaya', 'price': 16.99, 'quantity': 16, 'date': '2021-01-01'},
-    {'name': 'Coconut', 'price': 17.99, 'quantity': 17, 'date': '2021-01-01'},
-    {'name': 'Avocado', 'price': 18.99, 'quantity': 18, 'date': '2021-01-01'},
-    {'name': 'Cherry', 'price': 19.99, 'quantity': 19, 'date': '2021-01-01'},
-    {'name': 'Pineapple', 'price': 20.99, 'quantity': 20, 'date': '2021-01-01'},
-    {'name': 'Strawberry', 'price': 9.99, 'quantity': 9, 'date': '2021-01-01'},
-    {'name': 'Blueberry', 'price': 10.99, 'quantity': 10, 'date': '2021-01-01'},
-    {'name': 'Raspberry', 'price': 11.99, 'quantity': 11, 'date': '2021-01-01'},
-    {'name': 'Kiwi', 'price': 12.99, 'quantity': 12, 'date': '2021-01-01'},
-    {'name': 'Lemon', 'price': 13.99, 'quantity': 13, 'date': '2021-01-01'},
-    {'name': 'Lime', 'price': 14.99, 'quantity': 14, 'date': '2021-01-01'},
-    {'name': 'Pomegranate', 'price': 15.99, 'quantity': 15, 'date': '2021-01-01'},
-    {'name': 'Papaya', 'price': 16.99, 'quantity': 16, 'date': '2021-01-01'},
-    {'name': 'Coconut', 'price': 17.99, 'quantity': 17, 'date': '2021-01-01'},
+    {'name': 'Grapes', 'price': 500, 'quantity': 4, 'date': '2021-01-01'},
+    {'name': 'Pineapple', 'price': 2.99, 'quantity': 5, 'date': '2021-01-01'},
+    {'name': 'Watermelon', 'price': 2.99, 'quantity': 6, 'date': '2021-01-01'},
+    {'name': 'Mango', 'price': 2.99, 'quantity': 7, 'date': '2021-01-01'},
+    {'name': 'Peach', 'price': 2.99, 'quantity': 8, 'date': '2021-01-01'},
   ];
 
   // sort column index
@@ -343,25 +322,46 @@ class _HomePageState extends State<HomePage> {
                         ),
                   ),
 
-
-                  // Add a button to list all operations in a dialog
+                  // Save button
                   ElevatedButton(
-                    onPressed: pickImage,
-                    // use icon of image gallery
-                    child: const Icon(Icons.image),
+                    onPressed: () {
+                      // if _isLoading is true, do nothing
+                      // else save the data
+                      if (!_isLoading) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        // save the data
+                        postItemsToFireStore();
+                      }
+                    },
+                    child: const Text('Save'),
                   ),
+
                 ],
               ),
       ),
-      floatingActionButton: FloatingActionButton(
-        // Add an onPressed listener to the button that displays a loading wheel while the request is being processed
-        onPressed: () async {
-          takePicture();
-        },
-
-        child: const Icon(Icons.camera_alt),
-        //child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // 2 floating action buttons, one for take a picture and one for upload image
+          FloatingActionButton(
+            onPressed: () {
+              takePicture();
+            },
+            tooltip: 'Take a picture',
+            child: const Icon(Icons.camera_alt),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            onPressed: () {
+              pickImage();
+            },
+            tooltip: 'Upload image',
+            child: const Icon(Icons.image),
+          ),
+        ]
+        ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -372,12 +372,42 @@ class _HomePageState extends State<HomePage> {
     // get the current user's uid
     String uid = user!.uid;
 
-    // create a new collection named uid if it doesn't exist
-    // and add a new document with the current timestamp
-    // and add the itemsList to the document
-
-
-
+    // create a new document named uid if it doesn't exist
+    // else update the existing document
+    final userDoc = FirebaseFirestore.instance.collection("users").doc(uid);
+    // try to set
+    try {
+      var doc = await userDoc.get();
+      if(doc.exists) {
+        // update the document
+        await userDoc.update({
+          'items': FieldValue.arrayUnion(_itemsList),
+        });
+      } else {
+        // set the document
+        await userDoc.set({
+          'items': _itemsList,
+        });
+      }
+      // if successful, show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Items saved successfully'),
+        ),
+      );
+      // set _isLoading to false
+    } catch (e) {
+      // if failed, show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error saving items'),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   // Create a function to pick an image from the gallery
