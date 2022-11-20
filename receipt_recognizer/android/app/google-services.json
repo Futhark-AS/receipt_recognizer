@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "647471734749",
+    "project_id": "receipt-recognizer-369212",
+    "storage_bucket": "receipt-recognizer-369212.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:647471734749:android:9578823f2f16f7570f6034",
+        "android_client_info": {
+          "package_name": "com.example.receipt_recognizer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "647471734749-2fqcdeqp8j1eu60f5ju84g21c1r87q81.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDR-P1bJJF9XZrMCRyyuTcZhab8GlY_As4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "647471734749-2fqcdeqp8j1eu60f5ju84g21c1r87q81.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "647471734749-4i4hftheppp1lhi0istjpmih8g68s1jn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "NV6UVHBAEJ.receiptRecognizer"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

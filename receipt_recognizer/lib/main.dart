@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 // Import http package
 import 'package:http/http.dart' as http;
 // jsonEncode() to convert Dart objects to JSON
@@ -8,12 +9,31 @@ import 'dart:io';
 // image_picker package
 import 'package:image_picker/image_picker.dart';
 
-void main() {
+import 'login_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+Future<void> main()  async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseAuth.instance
+      .authStateChanges()
+      .listen((User? user) {
+    if (user == null) {
+      print('User is currently signed out!');
+    } else {
+      print('User is signed in!');
+    }
+  });
   runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -21,9 +41,15 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
+
+
   @override
   Widget build(BuildContext context) {
     // Create the request body
+    String initialRoute = '/';
+    if(FirebaseAuth.instance.currentUser == null) {
+      initialRoute = "/login";
+    }
 
     return MaterialApp(
       title: 'Flutter Demo',
@@ -39,13 +65,21 @@ class _MyAppState extends State<MyApp> {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // Home page with name of user as title
+      home:  HomePage(header: 'Welcome to Receipt Recognizer'),
+
+    routes: {
+      '/login': (context) => const MyLoginPage(),
+    },
+      initialRoute: initialRoute,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, required this.header});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -56,22 +90,84 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
+  final String header;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomePageState extends State<HomePage> {
+
+
   // Initialize api key and endpoint
   final apiKey = '5a5ee784b11d40218db59dc8c5c8f1b3';
   final endpoint = 'jorgen-receipt-recognizer.cognitiveservices.azure.com';
 
   final modelId = "prebuilt-receipt";
 
+  // Create _isLoading variable
+  bool _isLoading = false;
+
+  // 647471734749-4i4hftheppp1lhi0istjpmih8g68s1jn.apps.googleusercontent.com
+
+
+
   // initialize itemsList to store the items
-  // Format: {name: string, price: double, quantity: double}
-  List<Map<String, dynamic>> _itemsList = [];
+  // Format: {name: string, price: double, quantity: double, date: string}
+  // fill with dummy data
+  List<Map<String, dynamic>> _itemsList = [
+    {'name': 'Apple', 'price': 1.99, 'quantity': 1, 'date': '2021-01-01'},
+    {'name': 'Banana', 'price': 2.99, 'quantity': 2, 'date': '2021-01-01'},
+    {'name': 'Orange', 'price': 3.99, 'quantity': 3, 'date': '2021-01-01'},
+    {'name': 'Grapes', 'price': 4.99, 'quantity': 4, 'date': '2021-01-01'},
+    {'name': 'Pineapple', 'price': 5.99, 'quantity': 5, 'date': '2021-01-01'},
+    {'name': 'Watermelon', 'price': 6.99, 'quantity': 6, 'date': '2021-01-01'},
+    {'name': 'Mango', 'price': 7.99, 'quantity': 7, 'date': '2021-01-01'},
+    {'name': 'Peach', 'price': 8.99, 'quantity': 8, 'date': '2021-01-01'},
+    {'name': 'Strawberry', 'price': 9.99, 'quantity': 9, 'date': '2021-01-01'},
+    {'name': 'Blueberry', 'price': 10.99, 'quantity': 10, 'date': '2021-01-01'},
+    {'name': 'Raspberry', 'price': 11.99, 'quantity': 11, 'date': '2021-01-01'},
+    {'name': 'Kiwi', 'price': 12.99, 'quantity': 12, 'date': '2021-01-01'},
+    {'name': 'Lemon', 'price': 13.99, 'quantity': 13, 'date': '2021-01-01'},
+    {'name': 'Lime', 'price': 14.99, 'quantity': 14, 'date': '2021-01-01'},
+    {'name': 'Pomegranate', 'price': 15.99, 'quantity': 15, 'date': '2021-01-01'},
+    {'name': 'Papaya', 'price': 16.99, 'quantity': 16, 'date': '2021-01-01'},
+    {'name': 'Coconut', 'price': 17.99, 'quantity': 17, 'date': '2021-01-01'},
+    {'name': 'Avocado', 'price': 18.99, 'quantity': 18, 'date': '2021-01-01'},
+    {'name': 'Cherry', 'price': 19.99, 'quantity': 19, 'date': '2021-01-01'},
+    {'name': 'Pineapple', 'price': 20.99, 'quantity': 20, 'date': '2021-01-01'},
+    {'name': 'Strawberry', 'price': 9.99, 'quantity': 9, 'date': '2021-01-01'},
+    {'name': 'Blueberry', 'price': 10.99, 'quantity': 10, 'date': '2021-01-01'},
+    {'name': 'Raspberry', 'price': 11.99, 'quantity': 11, 'date': '2021-01-01'},
+    {'name': 'Kiwi', 'price': 12.99, 'quantity': 12, 'date': '2021-01-01'},
+    {'name': 'Lemon', 'price': 13.99, 'quantity': 13, 'date': '2021-01-01'},
+    {'name': 'Lime', 'price': 14.99, 'quantity': 14, 'date': '2021-01-01'},
+    {'name': 'Pomegranate', 'price': 15.99, 'quantity': 15, 'date': '2021-01-01'},
+    {'name': 'Papaya', 'price': 16.99, 'quantity': 16, 'date': '2021-01-01'},
+    {'name': 'Coconut', 'price': 17.99, 'quantity': 17, 'date': '2021-01-01'},
+  ];
+
+  // sort column index
+  int? _sortColumnIndex;
+  bool _isAscending = false;
+
+  DataColumn dataColumn(String label) {
+    String lowerLabel = label.toLowerCase();
+    return DataColumn(
+      label: Text(label),
+      onSort: (int columnIndex, bool ascending) {
+        setState(() {
+          _sortColumnIndex = columnIndex;
+          _isAscending = ascending;
+          if (ascending) {
+            _itemsList.sort((a, b) => a[lowerLabel]!.compareTo(b[lowerLabel]!));
+          } else {
+            _itemsList.sort((a, b) => b[lowerLabel]!.compareTo(a[lowerLabel]!));
+          }
+        });
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,72 +179,99 @@ class _MyHomePageState extends State<MyHomePage> {
     // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(widget.header),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+        ],
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // Display the items in a table
-            DataTable(
-              columns: const [
-                DataColumn(label: Text('Name')),
-                DataColumn(label: Text('Price')),
-                DataColumn(label: Text('Quantity')),
-              ],
-              rows: _itemsList
-                  .map(
-                    (item) => DataRow(
-                      cells: [
-                        DataCell(Text(item['name'])),
-                        DataCell(Text(item['price'].toString())),
-                        DataCell(Text(item['quantity'].toString())),
-                      ],
-                    ),
-                  )
-                  .toList(),
-            ),
+        // if _isLoading is true, show CircularProgressIndicator
+        // else show ListView
+        child: _isLoading
+            ? const CircularProgressIndicator()
+            : Column(
+                // Column is also a layout widget. It takes a list of children and
+                // arranges them vertically. By default, it sizes itself to fit its
+                // children horizontally, and tries to be as tall as its parent.
+                //
+                // Invoke "debug painting" (press "p" in the console, choose the
+                // "Toggle Debug Paint" action from the Flutter Inspector in Android
+                // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+                // to see the wireframe for each widget.
+                //
+                // Column has various properties to control how it sizes itself and
+                // how it positions its children. Here we use mainAxisAlignment to
+                // center the children vertically; the main axis here is the vertical
+                // axis because Columns are vertical (the cross axis would be
+                // horizontal).
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  // if itemsList is empty, show Text
+                  // else show ListView
+                  _itemsList.isEmpty
+                      ? const Text(
+                          'No items found',
+                          style: TextStyle(fontSize: 20),
+                        )
+                  //Scrollable data table. The user can edit each cell by clicking
+                  // on it. The user can also sort the table by tapping on the
+                  // column headers.
+                      : Expanded(
+                          child: Scrollbar(
+                            child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
 
-            // Add a button to list all operations in a dialog
-            ElevatedButton(
-              onPressed: pickImage,
-              // use icon of image gallery
-              child: const Icon(Icons.image),
-            ),
-          ],
-        ),
+                              child: DataTable(
+                                // sort the table based on the column clicked
+                                sortColumnIndex: _sortColumnIndex,
+                                columns: <DataColumn>[
+                                  dataColumn('Name'),
+                                  dataColumn('Price'),
+                                  dataColumn('Quantity'),
+                                  dataColumn('Date'),
+                                ],
+                                rows: _itemsList
+                                    .map(
+                                      (item) => DataRow(
+                                        cells: [
+                                          DataCell(Text(item['name']!)),
+                                          DataCell(Text(item['price'].toString())),
+                                          DataCell(Text(item['quantity'].toString())),
+                                          DataCell(Text(item['date']!)),
+                                        ],
+                                      ),
+                                    )
+                                    .toList(),
+
+                              ),
+                            ),
+
+                          ),
+                        ),
+                  ),
+
+
+                  // Add a button to list all operations in a dialog
+                  ElevatedButton(
+                    onPressed: pickImage,
+                    // use icon of image gallery
+                    child: const Icon(Icons.image),
+                  ),
+                ],
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         // Add an onPressed listener to the button that displays a loading wheel while the request is being processed
         onPressed: () async {
-          // Display a loading wheel while the request is being processed
-          showDialog(
-            context: context,
-            builder: (context) => const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
           takePicture();
-          // Close the loading wheel
-          Navigator.pop(context);
         },
 
         child: const Icon(Icons.camera_alt),
@@ -169,7 +292,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> takePicture() async {
     // Use the image_picker package to take a picture
     final image = await ImagePicker().pickImage(source: ImageSource.camera);
-
     await postImage(File(image!.path));
   }
 
@@ -195,6 +317,11 @@ class _MyHomePageState extends State<MyHomePage> {
       "Ocp-Apim-Subscription-Key": apiKey,
     };
 
+    // set _isLoading to true
+    setState(() {
+      _isLoading = true;
+    });
+
     // Create a POST request
     http.Response response = await http.post(
       Uri.parse(
@@ -213,8 +340,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // Get apim-request-id from response headers
     String apimRequestId = response.headers['apim-request-id']!;
 
-    // await 5 seconds while showing a load wheel to the user
-    await Future.delayed(const Duration(seconds: 7), () {});
+    // await 3 seconds while showing a load wheel to the user
+    await Future.delayed(const Duration(seconds: 5), () {});
 
     // get results using apim-request-id
     final results = await getResults(operationLocation);
@@ -222,12 +349,18 @@ class _MyHomePageState extends State<MyHomePage> {
     // transform results to Map object
     Map<String, dynamic> resultsMap = jsonDecode(results);
 
-    // if still running, wait 5 seconds and try again
+    // if still running, wait 3 seconds and try again
     if (resultsMap['status'] == 'running') {
       await Future.delayed(const Duration(seconds: 5), () {});
       final results = await getResults(operationLocation);
       resultsMap = jsonDecode(results);
     }
+
+    // stop loading
+    setState(() {
+      _isLoading = false;
+    });
+
     // if status is not succeeded, show error message
     if (resultsMap['status'] != 'succeeded') {
       showDialog(
@@ -250,8 +383,12 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
+    // get items from results
     var items = resultsMap['analyzeResult']['documents'][0]['fields']['Items']
         ['valueArray'];
+
+    // get date from results
+    var date = resultsMap['analyzeResult']['documents'][0]['fields']["TransactionDate"]["valueDate"];
 
     // Create an empty list to hold the item objects with name, quantity, and price
     List<Map<String, dynamic>> itemsList = [];
@@ -264,11 +401,11 @@ class _MyHomePageState extends State<MyHomePage> {
       String name = valueObject['Description']['valueString'];
       var quantity = valueObject['Quantity']['valueNumber'];
       // print type of quantity
-      print(quantity.runtimeType);
       var price = valueObject['TotalPrice']['valueNumber'];
 
       // Add the item to the itemsList
       itemsList.add({
+        "date": date,
         "name": name,
         "quantity": quantity,
         "price": price,
