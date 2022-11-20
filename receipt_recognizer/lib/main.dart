@@ -169,8 +169,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  DataCell dataCell(text, type) {
+  DataCell dataCell(dynamic text, String type, int index) {
     //Return a DataCell with text and onTap to edit the cell, and if its a date, show a date picker
+    var _text = text;
     return DataCell(
       Text(text),
       onTap: () {
@@ -182,49 +183,69 @@ class _HomePageState extends State<HomePage> {
             lastDate: DateTime(2100),
           ).then((value) {
             setState(() {
-              text = value.toString();
+              _itemsList[index]['date'] = value.toString().substring(0, 10);
             });
           });
         } else {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text('Edit'),
-                content: TextField(
-                  controller: TextEditingController(text: text),
-                  onChanged: (value) {
-                    text = value;
-                  },
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                    setState(() {
-                      if(type == 'price' || type == 'quantity'){
-                        text = double.parse(text);
-                      }
-                      else if(type == 'date'){
-                        text = DateTime.parse(text);
-                      }
-                      else {
-                        text = text;
-                      }
-                    });
-                      Navigator.pop(context);
-                    },
-                    child: Text('Save'),
-                  ),
-                ],
-              );
-            },
-          );
+          try{
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text('Edit'),
+                    content: TextField(
+                      controller: TextEditingController(text: text),
+                      onChanged: (value) {
+                        _text = value;
+                      },
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            print(type);
+                            print(_text);
+                            if(type == 'price' || type == 'quantity'){
+                              _itemsList[index][type] = double.parse(_text);
+                            }
+                            else {
+                              _itemsList[index][type] = _text;
+                            }
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text('Save'),
+                      ),
+                    ],
+                  );
+                },
+            );
+          } catch (e) {
+            // show error in a dialog
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text('Error'),
+                    content: Text('Please enter a valid value'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('Ok'),
+                      ),
+                    ],
+                  );
+                },
+            );
+          }
         }
       },
     );
@@ -293,6 +314,7 @@ class _HomePageState extends State<HomePage> {
                               child: DataTable(
                                 // sort the table based on the column clicked
                                 sortColumnIndex: _sortColumnIndex,
+                                sortAscending: _isAscending,
                                 columns: <DataColumn>[
                                   dataColumn('Name'),
                                   dataColumn('Price'),
@@ -300,18 +322,18 @@ class _HomePageState extends State<HomePage> {
                                   dataColumn('Date'),
                                 ],
                                 rows: _itemsList
+                                .asMap()
                                     .map(
-                                      (item) => DataRow(
+                                      (index, item) => MapEntry(index, DataRow(
                                         cells: [
-                                          dataCell('${item['name']}', 'name'),
-                                          dataCell('${item['price']}', 'price'),
-                                          dataCell('${item['quantity']}', 'quantity'),
-                                          dataCell('${item['date']}', 'date'),
+                                          dataCell('${item['name']}', 'name', index),
+                                          dataCell('${item['price']}', 'price', index),
+                                          dataCell('${item['quantity']}', 'quantity', index),
+                                          dataCell('${item['date']}', 'date', index),
                                         ],
                                       ),
-                                    )
-                                    .toList(),
-
+                                    ))
+                                    .values.toList(),
                               ),
                             ),
 
