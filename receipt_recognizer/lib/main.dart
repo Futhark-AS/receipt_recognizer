@@ -169,6 +169,67 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  DataCell dataCell(text, type) {
+    //Return a DataCell with text and onTap to edit the cell, and if its a date, show a date picker
+    return DataCell(
+      Text(text),
+      onTap: () {
+        if (type == 'date') {
+          showDatePicker(
+            context: context,
+            initialDate: DateTime.parse(text),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
+          ).then((value) {
+            setState(() {
+              text = value.toString();
+            });
+          });
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text('Edit'),
+                content: TextField(
+                  controller: TextEditingController(text: text),
+                  onChanged: (value) {
+                    text = value;
+                  },
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                    setState(() {
+                      if(type == 'price' || type == 'quantity'){
+                        text = double.parse(text);
+                      }
+                      else if(type == 'date'){
+                        text = DateTime.parse(text);
+                      }
+                      else {
+                        text = text;
+                      }
+                    });
+                      Navigator.pop(context);
+                    },
+                    child: Text('Save'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -242,10 +303,10 @@ class _HomePageState extends State<HomePage> {
                                     .map(
                                       (item) => DataRow(
                                         cells: [
-                                          DataCell(Text(item['name']!)),
-                                          DataCell(Text(item['price'].toString())),
-                                          DataCell(Text(item['quantity'].toString())),
-                                          DataCell(Text(item['date']!)),
+                                          dataCell('${item['name']}', 'name'),
+                                          dataCell('${item['price']}', 'price'),
+                                          dataCell('${item['quantity']}', 'quantity'),
+                                          dataCell('${item['date']}', 'date'),
                                         ],
                                       ),
                                     )
