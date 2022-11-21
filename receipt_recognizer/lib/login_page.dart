@@ -29,13 +29,17 @@ class _MyLoginPageState extends State<MyLoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            ElevatedButton(
+            FloatingActionButton.extended(
+              heroTag: 'login',
               onPressed: () async {
                 // Navigate to the second screen using a named route.
                 await FirebaseAuth.instance.signInWithProvider(GoogleAuthProvider());
                 Navigator.pushReplacementNamed(context, '/');
               },
-              child: const Text('Sign In with Google'),
+              label: const Text('Sign In with Google'),
+              icon: const Icon(Icons.security),
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
             ),
           ],
         ),

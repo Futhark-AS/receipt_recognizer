@@ -68,7 +68,7 @@ class _MyAppState extends State<MyApp> {
         primarySwatch: Colors.blue,
       ),
       // Home page with name of user as title
-      home:  HomePage(header: 'Welcome to Receipt Recognizer'),
+      home:  HomePage(header: 'Receipt Recognizer'),
 
     routes: {
       '/login': (context) => const MyLoginPage(),
@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> {
 
 
   // initialize itemsList to store the items
-  // Format: {name: string, price: double, quantity: double, date: string}
+  // Format: {name: string, price: double, quantity: int, date: string}
   // fill with dummy data
   List<Map<String, dynamic>> _itemsList = [
     {'name': 'Apple', 'price': 2, 'quantity': 1, 'date': '2021-01-01'},
@@ -168,7 +168,6 @@ class _HomePageState extends State<HomePage> {
             });
           });
         } else {
-          try{
             showDialog(
                 context: context,
                 builder: (context) {
@@ -189,17 +188,41 @@ class _HomePageState extends State<HomePage> {
                       ),
                       TextButton(
                         onPressed: () {
-                          setState(() {
-                            print(type);
-                            print(_text);
-                            if(type == 'price' || type == 'quantity'){
-                              _itemsList[index][type] = double.parse(_text);
-                            }
-                            else {
-                              _itemsList[index][type] = _text;
-                            }
-                          });
-                          Navigator.pop(context);
+                          try {
+                            setState(() {
+                              print(type);
+                              print(_text);
+                              if (type == 'price') {
+                                _itemsList[index][type] = double.parse(_text);
+                              }
+                              else if (type == 'quantity') {
+                                _itemsList[index][type] = int.parse(_text);
+                              }
+                              else {
+                                _itemsList[index][type] = _text;
+                              }
+                            });
+                            Navigator.pop(context);
+                          } catch (e) {
+                            // show error in a dialog
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text('Error'),
+                                  content: Text('Please enter a valid value.\nError message: $e', style: TextStyle(color: Colors.red)),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text('Ok'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
                         },
                         child: Text('Save'),
                       ),
@@ -207,30 +230,38 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
             );
-          } catch (e) {
-            // show error in a dialog
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text('Error'),
-                    content: Text('Please enter a valid value'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text('Ok'),
-                      ),
-                    ],
-                  );
-                },
-            );
           }
-        }
       },
     );
   }
+
+  // Delete button in data cell for each row
+  DataCell deleteButton(int index) {
+    return DataCell(
+      IconButton(
+        icon: Icon(Icons.delete),
+        onPressed: () {
+          setState(() {
+            _itemsList.removeAt(index);
+          });
+        },
+      ),
+    );
+  }
+
+  // _isEditing variable
+  bool _isEditing = false;
+
+  // _priceController and _quantityController and _nameController
+  TextEditingController _priceController = TextEditingController();
+  TextEditingController _quantityController = TextEditingController();
+  TextEditingController _nameController = TextEditingController();
+
+  // date picker variable
+  DateTime? _date_in_editing;
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -297,6 +328,36 @@ class _HomePageState extends State<HomePage> {
                                 sortColumnIndex: _sortColumnIndex,
                                 sortAscending: _isAscending,
                                 columns: <DataColumn>[
+                                  DataColumn(label:  Icon(Icons.delete), onSort:
+                                  (int columnIndex, bool ascending) {
+                                    // delete all items if user accepts warning dialog
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: Text('Warning'),
+                                            content: Text('Are you sure you want to delete all items?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _itemsList.clear();
+                                                  });
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Text('Delete'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                    );
+                                  },),
                                   dataColumn('Name'),
                                   dataColumn('Price'),
                                   dataColumn('Quantity'),
@@ -307,6 +368,7 @@ class _HomePageState extends State<HomePage> {
                                     .map(
                                       (index, item) => MapEntry(index, DataRow(
                                         cells: [
+                                          deleteButton(index),
                                           dataCell('${item['name']}', 'name', index),
                                           dataCell('${item['price']}', 'price', index),
                                           dataCell('${item['quantity']}', 'quantity', index),
@@ -321,9 +383,127 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                   ),
-
+                  _itemsList.isNotEmpty ?
+                    ElevatedButton(
+                  child: Text('Add Item'),
+                      onPressed: () {
+                        if(_itemsList.isNotEmpty){
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text('Add Item'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TextField(
+                                      controller: _nameController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Name',
+                                      ),
+                                    ),
+                                    TextField(
+                                      controller: _priceController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Price',
+                                      ),
+                                    ),
+                                    TextField(
+                                      controller: _quantityController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Quantity',
+                                      ),
+                                    ),
+                                    // Datecontroller pick date
+                                    TextButton(
+                                      child: Text('Date: ${_date_in_editing == null ? "not selected" : _date_in_editing.toString().substring(0, 10)}'),
+                                      onPressed: () async {
+                                        final date = await showDatePicker(
+                                          context: context,
+                                          initialDate: _date_in_editing == null ? DateTime.now() : _date_in_editing!,
+                                          firstDate: DateTime(2000),
+                                          lastDate: DateTime(2100),
+                                        );
+                                        if (date != null) {
+                                          setState(() {
+                                            _date_in_editing = date;
+                                          });
+                                        }
+                                      },
+                                      ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      try{
+                                      setState(() {
+                                        _itemsList.add({
+                                          'name': _nameController.text,
+                                          'price': double.parse(_priceController.text),
+                                          'quantity': int.parse(_quantityController.text),
+                                          'date': _date_in_editing.toString().substring(0, 10),
+                                        });
+                                      });
+                                      Navigator.pop(context);
+                                      } catch (e) {
+                                        // show error in a dialog
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: Text('Error'),
+                                              content: Text('Please enter a valid value.\nError message: $e', style: TextStyle(color: Colors.red)),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: Text('Ok'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                    child: Text('Add'),
+                                  ),
+                                  // Button to add items using camera
+                                  TextButton(onPressed:
+                                  () {
+                                    Navigator.pop(context);
+                                    takePicture();
+                                  },
+                                      child: Icon(Icons.camera_alt)),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                      },
+                    )
+                      : Container(),
+                  _itemsList.isNotEmpty ?
+                  // Add padding around button
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                  child:
                   // Save button
                   ElevatedButton(
+                    // margin bottom for button
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(200, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     onPressed: () {
                       // if _isLoading is true, do nothing
                       // else save the data
@@ -337,7 +517,8 @@ class _HomePageState extends State<HomePage> {
                     },
                     child: const Text('Save'),
                   ),
-
+                  )
+                  : Container(),
                 ],
               ),
       ),
@@ -346,6 +527,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           // 2 floating action buttons, one for take a picture and one for upload image
           FloatingActionButton(
+            heroTag: 'camera',
             onPressed: () {
               takePicture();
             },
@@ -354,6 +536,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 10),
           FloatingActionButton(
+            heroTag: 'upload',
             onPressed: () {
               pickImage();
             },
@@ -389,13 +572,15 @@ class _HomePageState extends State<HomePage> {
           'items': _itemsList,
         });
       }
+      // Clear the list
+      _itemsList.clear();
+
       // if successful, show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Items saved successfully'),
         ),
       );
-      // set _isLoading to false
     } catch (e) {
       // if failed, show error message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -529,8 +714,9 @@ class _HomePageState extends State<HomePage> {
       var valueObject = item['valueObject'];
       // Get the name, quantity, and price of the item
       String name = valueObject['Description']['valueString'];
-      var quantity = valueObject['Quantity']['valueNumber'];
-      // print type of quantity
+
+      var quantity = valueObject['Quantity']!= null ? valueObject['Quantity']['valueNumber'] : 1;
+
       var price = valueObject['TotalPrice']['valueNumber'];
 
       // Add the item to the itemsList
@@ -543,8 +729,25 @@ class _HomePageState extends State<HomePage> {
     }
 
     setState(() {
-      _itemsList = itemsList;
+      _itemsList.addAll(itemsList);
     });
+
+    // show success message in dialog, and tell the user that he can edit each cell and also add new items
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Success'),
+        content: const Text('Items extracted successfully. Tap on a cell to edit its value.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   // Create a function to get the results from the API that takes in resultId and returns the results
