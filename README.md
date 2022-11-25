@@ -12,6 +12,10 @@ This solves the problem of manually entering data from receipts. This can for ex
 
 To use the application, simply open the application and take or upload an image of a receipt. The application will then extract the data from the receipt, store it in a structured format and display it in a table.
 
+## Demo Video
+https://user-images.githubusercontent.com/55702375/204059696-284ee9ae-5590-4748-9d28-9a269670a880.mp4
+
+
 
 ## Data sources and AI methods
 
@@ -24,6 +28,9 @@ The model works best with receipts in big languages, such as English. It will no
 ## What next?
 
 The next step is to create an application where you can easily split a bill between friends, simply by dragging and dropping each item. In that way, you can easily keep track of who paid for what, and who owes what.
+
+
+
 
 ## Acknowledgments
 
