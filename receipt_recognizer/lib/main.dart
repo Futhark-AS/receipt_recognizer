@@ -15,6 +15,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
+import 'keys.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -93,7 +95,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   // Initialize api key and endpoint
-  final apiKey = '5a5ee784b11d40218db59dc8c5c8f1b3';
   final endpoint = 'jorgen-receipt-recognizer.cognitiveservices.azure.com';
 
   final modelId = "prebuilt-receipt";
